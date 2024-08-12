@@ -8,35 +8,31 @@
 #include <assert.h>
 #include "simul.h"
 
-int parseArgs(int argc, char **argv, long *n_sites, double *rhop, double *rhom,
+int parseArgs(int argc, char **argv, long *k_max, double *n_i, double *rhom,
 		      double *prob, long *n_simuls, char *fname,
 			  int *determ, int *n_repet, int *n_times, double **tfins) {
 	if (argc < 9) {
 		fprintf(stderr,
-				"Usage: %s n_sites rhop rhom prob n_simuls fname determ n_repet tfin1"
+				"Usage: %s k_max n(1,0) n_simuls fname n_repet tfin1"
 			    " [tfin2 ...]\n",
 		        argv[0]);
 		return 1;
 	}
-	*n_sites = atol(argv[1]);
-	*rhop = atof(argv[2]);
-	*rhom = atof(argv[3]);
-	*prob = atof(argv[4]);
-	*n_simuls = atol(argv[5]);
-	strcpy(fname, argv[6]);
-	// Deterministic initial conditions or not
-	*determ = atoi(argv[7]);
-	*n_repet = atoi(argv[8]);
+	*k_max = atol(argv[1]);
+	*n_i = atof(argv[2]);
+	*n_simuls = atol(argv[3]);
+	strcpy(fname, argv[4]);
+	*n_repet = atoi(argv[5]);
 
-	*n_times = argc - 9;
+	*n_times = argc - 6;
 	*tfins = malloc(*n_times * sizeof(double));
 	for (long k = 0 ; k < *n_times ; ++k) {
-		(*tfins)[k] = atof(argv[9 + k]);
+		(*tfins)[k] = atof(argv[6 + k]);
 	}
 	return 0;
 }
 
-void export(long * observables[N_OBS], char *fname, long n_sites,
+void export(long * observables[N_OBS], char *fname, long k_max,
 		    long n_simul_tot, char *header, int R) {
 	FILE *file = NULL;
 	file = fopen(fname, "w+");
@@ -50,7 +46,7 @@ void export(long * observables[N_OBS], char *fname, long n_sites,
 
 	double fac = 1.0 / n_simul_tot / R;
 
-	for (long i = 0 ; i < n_sites ; ++i) {
+	for (long i = 0 ; i < k_max ; ++i) {
 		fprintf(file, "%ld ", i);
 		for (int k = 0 ; k < N_OBS ; ++k) {
 			fprintf(file, " %.10e", fac * observables[k][i]);
@@ -101,15 +97,15 @@ unsigned long seedgen2(void)  {
 }
 
 int main(int argc, char **argv) {
-	long n_sites, n_simuls;
+	long k_max, n_simuls;
 	int n_times;
-	double prob, rhop, rhom;
+	double prob, n_i, rhom;
 	double *tfins;
 	char fname[200];
 	int determ, status, n_repet;
 
 	// Initializations
-	status = parseArgs(argc, argv, &n_sites, &rhop, &rhom, &prob, &n_simuls,
+	status = parseArgs(argc, argv, &k_max, &n_i, &rhom, &prob, &n_simuls,
 			           fname, &determ, &n_repet, &n_times, &tfins);
 	if (status) {
 		return status;
@@ -124,9 +120,9 @@ int main(int argc, char **argv) {
 	char header[500];
 	if (world_rank == 0) {
 		sprintf(header,
-				"# n_sites=%ld, rhop=%lf, rhom=%lf, prob=%lf, "
+				"# k_max=%ld, n_i=%lf, rhom=%lf, prob=%lf, "
 				"n_simuls=Rx%dx%ld, fname=%s, determ=%d, n_repet=%d",
-			    n_sites, rhop, rhom, prob, world_size, n_simuls,
+			    k_max, n_i, rhom, prob, world_size, n_simuls,
 				fname, determ, n_repet);
 		printf("%s\nTimes: ", header);
 		for (int k = 0 ; k < n_times ; ++k) {
@@ -148,7 +144,7 @@ int main(int argc, char **argv) {
 	assert(observablesX);
 	assert(obs_sum);
 
-	long n_sites_eff = 2*n_sites;
+	long n_sites_eff = 2*k_max;
 
 	for (int k = 0 ; k < n_obs_tot ; ++k) {
 		observablesX[k] = (long *) calloc(n_sites_eff, sizeof(long));
@@ -173,7 +169,7 @@ int main(int argc, char **argv) {
 		// Generate the seed
 		unsigned long local_seed = seedgen2();
 
-		run(n_sites, rhop, rhom, prob, n_simuls, n_times, tfins, observablesX, 
+		run(k_max, n_i, rhom, prob, n_simuls, n_times, tfins, observablesX, 
 #ifdef FLUX
 		observablesQ,
 #endif		
