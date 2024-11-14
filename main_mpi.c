@@ -8,71 +8,49 @@
 #include <assert.h>
 #include "simul.h"
 
-int parseArgs(int argc, char **argv, long *k_max, double *n_i, double *rhom,
-		      double *prob, long *n_simuls, char *fname,
-			  int *determ, int *n_repet, int *n_times, double **tfins) {
-	if (argc < 9) {
+int parseArgs(int argc, char **argv, long *k_max, long *n_i, long *a_fin, long *n_simuls, char *fname, int *n_repet, int *n_times, double **tfins) {
+	if (argc < 7) {
 		fprintf(stderr,
-				"Usage: %s k_max n(1,0) n_simuls fname n_repet tfin1"
+				"Usage: %s k_max n(1,0) a_fin n_simuls fname n_repet tfin1"
 			    " [tfin2 ...]\n",
 		        argv[0]);
 		return 1;
 	}
 	*k_max = atol(argv[1]);
-	*n_i = atof(argv[2]);
-	*n_simuls = atol(argv[3]);
-	strcpy(fname, argv[4]);
-	*n_repet = atoi(argv[5]);
+	*n_i = atol(argv[2]);
+	*a_fin = atol(argv[3]);
+	*n_simuls = atol(argv[4]);
+	strcpy(fname, argv[5]);
+	*n_repet = atoi(argv[6]);
 
-	*n_times = argc - 6;
-	*tfins = malloc(*n_times * sizeof(double));
+	*n_times = argc - 7;
+	*tfins = malloc((*n_times) * sizeof(double));
 	for (long k = 0 ; k < *n_times ; ++k) {
-		(*tfins)[k] = atof(argv[6 + k]);
+		(*tfins)[k] = atof(argv[7 + k]);
 	}
 	return 0;
 }
 
-void export(long * observables[N_OBS], char *fname, long k_max,
-		    long n_simul_tot, char *header, int R) {
+void export(long * observables[N_OBS], char *fname, long k_max, long n_simul_tot, char *header, int R) {
 	FILE *file = NULL;
 	file = fopen(fname, "w+");
 	//assert(file);
 	fprintf(file, "%sR=%d \t", header, R);
-	fprintf(file, "# r er e+*er e-*er");
-	fprintf(file, " X*er X*e+*er X*e-*er X");
-	fprintf(file, " X^2*er X^2*e+*er X^2*e-*er X^2");
-	fprintf(file, " X^3*er X^3*e+*er X^3*e-*er X^3");
+	fprintf(file, "# k n(k,t)");
+	fprintf(file, "n(k ,t) n(a,T) ");
+	fprintf(file, "n(k ,t) n(a,T)^2 ");
+	fprintf(file, "n(k ,t) n(a,T)^3 ");
 	fprintf(file, "\n");
 
 	double fac = 1.0 / n_simul_tot / R;
 
-	for (long i = 0 ; i < k_max ; ++i) {
+	for (long k = 0 ; k < k_max ; ++k) {
 		fprintf(file, "%ld ", i);
-		for (int k = 0 ; k < N_OBS ; ++k) {
-			fprintf(file, " %.10e", fac * observables[k][i]);
+		for (int i = 0 ; i < N_OBS ; ++i) {
+			fprintf(file, " %.10e", fac * observables[i][k]);
 		}
 		fprintf(file, "\n");
 	}
-	fclose(file);
-}
-
-void exportCums(long * obs_sum[N_OBS], char *fname, long n_simul_tot,
-                long n_times, double *tfins, char *header, int R) {
-	FILE *file = NULL;
-	file = fopen(fname, "w+");
-
-	fprintf(file, "%s\n", header);
-	fprintf(file, "# t X X^2 X^3 X^4 X^5 X^6\n");
-	double fac = 1.0 / n_simul_tot / R;
-
-	for (long i = 0 ; i < n_times ; ++i) {
-		fprintf(file, "%lf ", tfins[i]);
-		for (int k = 0 ; k < 3 ; ++k) {
-			fprintf(file, " %.10e", fac * obs_sum[i * N_OBS + 6 + 4*k][0]);
-		}
-		fprintf(file, "\n");
-	}
-
 	fclose(file);
 }
 
@@ -99,14 +77,13 @@ unsigned long seedgen2(void)  {
 int main(int argc, char **argv) {
 	long k_max, n_simuls;
 	int n_times;
-	double prob, n_i, rhom;
+	long n_i, a_fin;
 	double *tfins;
 	char fname[200];
-	int determ, status, n_repet;
+	int status, n_repet;
 
 	// Initializations
-	status = parseArgs(argc, argv, &k_max, &n_i, &rhom, &prob, &n_simuls,
-			           fname, &determ, &n_repet, &n_times, &tfins);
+	status = parseArgs(argc, argv, &k_max, &n_i, &a_fin, &n_simuls, fname, &n_repet, &n_times, &tfins);
 	if (status) {
 		return status;
 	}
@@ -119,11 +96,10 @@ int main(int argc, char **argv) {
 
 	char header[500];
 	if (world_rank == 0) {
-		sprintf(header,
-				"# k_max=%ld, n_i=%lf, rhom=%lf, prob=%lf, "
-				"n_simuls=Rx%dx%ld, fname=%s, determ=%d, n_repet=%d",
-			    k_max, n_i, rhom, prob, world_size, n_simuls,
-				fname, determ, n_repet);
+		sprintf(header, "# k_max=%ld, n_i=%ld, a=%ld, T=%lf"
+				"n_simuls=Rx%dx%ld, fname=%s, R=%d",
+			    k_max, n_i, a_fin, tfins[n_times - 1], world_size, n_simuls, fname, n_repet);
+
 		printf("%s\nTimes: ", header);
 		for (int k = 0 ; k < n_times ; ++k) {
 			printf("%g ", tfins[k]);
@@ -132,31 +108,20 @@ int main(int argc, char **argv) {
 	}
 
 	const int n_obs_tot = N_OBS * n_times;
-	long **observablesX = (long **) malloc(n_obs_tot * sizeof(long *));
-#ifdef FLUX
-	long **observablesQ = (long **) malloc(n_obs_tot * sizeof(long *));
-#endif
+	long **observables = (long **) malloc(n_obs_tot * sizeof(long *));
+
 	// It is crucial to allocate the array of pointers on all processes
 	long **obs_sum = (long **) malloc(n_obs_tot * sizeof(long *));
-#ifdef FLUX
-	assert(observablesQ);
-#endif
-	assert(observablesX);
+
+	assert(observables);
 	assert(obs_sum);
 
-	long n_sites_eff = 2*k_max;
-
 	for (int k = 0 ; k < n_obs_tot ; ++k) {
-		observablesX[k] = (long *) calloc(n_sites_eff, sizeof(long));
-		assert(observablesX[k]);
-
-#ifdef FLUX
-		observablesQ[k] = (long *) calloc(n_sites_eff, sizeof(long));
-		assert(observablesQ[k]);
-#endif
+		observables[k] = (long *) calloc(k_max, sizeof(long));
+		assert(observables[k]);
 		
 		if (world_rank == 0) {
-			obs_sum[k] = (long *) calloc(n_sites_eff, sizeof(long));
+			obs_sum[k] = (long *) calloc(k_max, sizeof(long));
 			assert(obs_sum[k]);
 		}
 	}
@@ -169,50 +134,21 @@ int main(int argc, char **argv) {
 		// Generate the seed
 		unsigned long local_seed = seedgen2();
 
-		run(k_max, n_i, rhom, prob, n_simuls, n_times, tfins, observablesX, 
-#ifdef FLUX
-		observablesQ,
-#endif		
-		local_seed, determ);
+		run(k_max, n_i, a_fin, n_simuls, n_times, tfins, observables, local_seed);
 
 		// We sum all the observables from all the processes for position
 		for (int k = 0 ; k < n_obs_tot ; ++k) {
-			MPI_Reduce(observablesX[k], obs_sum[k], n_sites_eff, MPI_LONG, MPI_SUM,
-					0, MPI_COMM_WORLD);
+			MPI_Reduce(observables[k], obs_sum[k], k_max, MPI_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
 		}
 
 		if (world_rank == 0) {
-#ifdef ONLY_CUMS
-			exportCums(obs_sum, fname, n_simuls * world_size, n_times,
-		  	         tfins, header, r+1);
-#else
 			for (int k = 0 ; k < n_times ; ++k) {
 				char hd[500], ff[100];
 				sprintf(hd, "%s, tfin=%g\n", header, tfins[k]); // Header
-				sprintf(ff, "%s_%g_X.dat", fname, tfins[k]); // Filename
-				export(&obs_sum[k * N_OBS], ff, n_sites_eff, n_simuls * world_size, hd, r+1);
+				sprintf(ff, "%s_%g.dat", fname, tfins[k]); // Filename
+				export(&obs_sum[k * N_OBS], ff, k_max, n_simuls * world_size, hd, r+1);
 			}
-#endif
-	}
-
-#ifdef FLUX
-		// We sum all the observables from all the processes for flux
-		for (int k = 0 ; k < n_obs_tot ; ++k) {
-			MPI_Reduce(observablesQ[k], obs_sum[k], n_sites_eff, MPI_LONG, MPI_SUM,
-					0, MPI_COMM_WORLD);
 		}
-
-		// Export
-		if (world_rank == 0) {	
-			for (int k = 0 ; k < n_times ; ++k) {
-				char hd[500], ff[100];
-				sprintf(hd, "%s, tfin=%g\n", header, tfins[k]); // Header
-				sprintf(ff, "%s_%g_Q.dat", fname, tfins[k]); // Filename
-				export(&obs_sum[k * N_OBS], ff, n_sites_eff, n_simuls * world_size, hd, r+1);
-			}
-	
-		}
-#endif
 
 		MPI_Barrier(MPI_COMM_WORLD);
 	}
@@ -223,17 +159,12 @@ int main(int argc, char **argv) {
 	// Free memory
 	free(tfins);
 	for (int k = 0 ; k < n_obs_tot ; ++k) {
-		free(observablesX[k]);
-#ifdef FLUX
-		free(observablesQ[k]);
-#endif
+		free(observables[k]);
 		if (world_rank == 0)
 			free(obs_sum[k]);
 	}
-	free(observablesX);
-#ifdef FLUX
-	free(observablesQ);
-#endif
+
+	free(observables);
 	free(obs_sum);
 
 	return 0;
