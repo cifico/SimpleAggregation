@@ -45,7 +45,7 @@ void export(long * observables[N_OBS], char *fname, long k_max, long n_simul_tot
 	double fac = 1.0 / n_simul_tot / R;
 
 	for (long k = 0 ; k < k_max ; ++k) {
-		fprintf(file, "%ld ", i);
+		fprintf(file, "%ld ", k);
 		for (int i = 0 ; i < N_OBS ; ++i) {
 			fprintf(file, " %.10e", fac * observables[i][k]);
 		}
