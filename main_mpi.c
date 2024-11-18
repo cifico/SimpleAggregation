@@ -144,7 +144,7 @@ int main(int argc, char **argv) {
 		if (world_rank == 0) {
 			for (int k = 0 ; k < n_times ; ++k) {
 				char hd[500], ff[100];
-				sprintf(hd, "%s, tfin=%g\n", header, tfins[k]); // Header
+				sprintf(hd, "%s, t=%g\n", header, tfins[k]); // Header
 				sprintf(ff, "%s_%g.dat", fname, tfins[k]); // Filename
 				export(&obs_sum[k * N_OBS], ff, k_max, n_simuls * world_size, hd, r+1);
 			}
