@@ -18,7 +18,7 @@ int parseArgs(int argc, char **argv, long *k_max, long *n_i, long *a_fin, long *
 	}
 	*k_max = atol(argv[1]);
 	*n_i = atol(argv[2]);
-	*a_fin = atol(argv[3]);
+	*a_fin = atol(argv[3]) - 1;
 	*n_simuls = atol(argv[4]);
 	strcpy(fname, argv[5]);
 	*n_repet = atoi(argv[6]);
