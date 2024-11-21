@@ -108,14 +108,13 @@ double evolve(State *state, const double tini, const double tfin, VSLStreamState
 void updateObs(State *states, long **observables, const long a_fin, const long k_max, const long n_times) {
 	long naT = 0;
 	
-	printf("A");
 
 	for (long i = 0 ; i < states[n_times - 1].n_agg ; ++i) 
 	{
 		if (states[n_times - 1].aggregate[i] == a_fin) naT += 1;
 	}
 
-	printf("B");
+	printf("%ld \t", naT);
 
 	long k = 0;
 	long naT2 = naT * naT;
@@ -123,7 +122,6 @@ void updateObs(State *states, long **observables, const long a_fin, const long k
 
 	#pragma ivdep
 	for (long t = 0 ; t < n_times ; ++t) {
-			printf("C %ld \n", t);
 		for (long i = 0 ; i < states[t].n_agg ; ++i) 
 		{
 			k = MIN(k_max - 1, states[t].aggregate[i]);
@@ -133,6 +131,8 @@ void updateObs(State *states, long **observables, const long a_fin, const long k
 			observables[t * N_OBS + 2][k] += naT2;
 			observables[t * N_OBS + 3][k] += naT3;
 		}
+
+		printf("%ld \n", observables[t * N_OBS][k]);
 	}
 }
 
