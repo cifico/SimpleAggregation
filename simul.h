@@ -22,7 +22,7 @@ typedef struct {
 		 long **observables, const unsigned long seed, const int determ);*/
 void run(const long k_max, const long n_i, const long a_fin, const long n_simuls, const long n_times, const double *tfins, long **observables, const unsigned long local_seed);
 
-evolve(State *state, const double tini, const double tfin, VSLStreamStatePtr stream);
+double evolve(State *state, const double tini, const double tfin, VSLStreamStatePtr stream);
 
 void updateObs(State **states, long **observables, const long a_fin, const long k_max, const long n_times);
 

@@ -7,7 +7,7 @@ void run(const long k_max, const long n_i, const long a_fin, const long n_simuls
 	const int n_obs_tot = N_OBS * n_times;
 
 	VSLStreamStatePtr stream;
-	vslNewStream(&stream, CUSTOM_RNG, seed);
+	vslNewStream(&stream, CUSTOM_RNG, local_seed);
 
 	State *states;
 	states = (State *) malloc(n_times * sizeof(State));	
@@ -20,7 +20,7 @@ void run(const long k_max, const long n_i, const long a_fin, const long n_simuls
 	for (long i = 0 ; i < n_simuls ; ++i) {
 		states[0].n_agg = n_i;
 		
-		for (int j = 0 ; j < n_i ; ++k) 
+		for (int j = 0 ; j < n_i ; ++j) 
 		{
 			states[0].aggregate[j] = 1;
 		}
@@ -40,10 +40,10 @@ void run(const long k_max, const long n_i, const long a_fin, const long n_simuls
 			}
 
 			tf = tfins[k];
-			ti = evolve(&state[k], ti, tf, stream);	
+			ti = evolve(&states[k], ti, tf, stream);	
 		}
 		
-		updateObs(states, observables, a_fin, k_max, n_times);
+		updateObs(&states, observables, a_fin, k_max, n_times);
 	}
 	
 	for (int k = 0 ; k < n_times ; ++k) 
