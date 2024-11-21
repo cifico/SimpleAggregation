@@ -29,7 +29,7 @@ void run(const long k_max, const long n_i, const long a_fin, const long n_simuls
 		double ti = 0.0, tf = 0.0;
 
 		tf = tfins[k];
-		ti = evolve(&state[k], ti, tf, stream);	
+		ti = evolve(&states[k], ti, tf, stream);	
 
 		for (k = 1 ; k < n_times ; ++k) {
 			states[k].n_agg = states[k-1].n_agg;
