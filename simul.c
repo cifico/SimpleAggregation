@@ -121,7 +121,7 @@ void updateObs(State **states, long **observables, const long a_fin, const long 
 	for (long t = 0 ; t < n_times ; ++t) {
 		for (long i = 0 ; i < states[t-1]->n_agg ; ++i) 
 		{
-			k = MIN(k_max, states[t-1]->aggregate[i]);
+			k = MIN(k_max - 1, states[t-1]->aggregate[i]);
 
 			observables[t * N_OBS][k] += 1;
 			observables[t * N_OBS + 1][k] += naT;
