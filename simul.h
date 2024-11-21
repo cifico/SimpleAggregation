@@ -24,6 +24,6 @@ void run(const long k_max, const long n_i, const long a_fin, const long n_simuls
 
 double evolve(State *state, const double tini, const double tfin, VSLStreamStatePtr stream);
 
-void updateObs(State **states, long **observables, const long a_fin, const long k_max, const long n_times);
+void updateObs(State *states, long **observables, const long a_fin, const long k_max, const long n_times);
 
 #endif
