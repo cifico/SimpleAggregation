@@ -38,7 +38,7 @@ void run(const long k_max, const long n_i, const long a_fin, const long n_simuls
 		for (k = 1 ; k < n_times ; ++k) {
 			states[k].n_agg = states[k-1].n_agg;
 
-			for (int j = 0 ; k < states[k-1].n_agg; ++k) 
+			for (int j = 0 ; j < states[k-1].n_agg; ++j) 
 			{	
 				states[k].aggregate[j] = states[k-1].aggregate[j] ;
 			}
