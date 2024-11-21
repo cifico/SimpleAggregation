@@ -16,6 +16,8 @@ void run(const long k_max, const long n_i, const long a_fin, const long n_simuls
 		states[k].n_agg = n_i;
 		states[k].aggregate = (long *) calloc(n_i, sizeof(long));
 	}
+	
+	printf("1");
 
 	for (long i = 0 ; i < n_simuls ; ++i) {
 		states[0].n_agg = n_i;
@@ -31,6 +33,8 @@ void run(const long k_max, const long n_i, const long a_fin, const long n_simuls
 		tf = tfins[k];
 		ti = evolve(&states[k], ti, tf, stream);	
 
+		printf("2");
+
 		for (k = 1 ; k < n_times ; ++k) {
 			states[k].n_agg = states[k-1].n_agg;
 
@@ -43,7 +47,11 @@ void run(const long k_max, const long n_i, const long a_fin, const long n_simuls
 			ti = evolve(&states[k], ti, tf, stream);	
 		}
 		
+		printf("3");
+
 		updateObs(&states, observables, a_fin, k_max, n_times);
+
+		printf("4");
 	}
 	
 	for (int k = 0 ; k < n_times ; ++k) 
