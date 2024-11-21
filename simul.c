@@ -17,7 +17,6 @@ void run(const long k_max, const long n_i, const long a_fin, const long n_simuls
 		states[k].aggregate = (long *) calloc(n_i, sizeof(long));
 	}
 	
-	printf("1");
 
 	for (long i = 0 ; i < n_simuls ; ++i) {
 		states[0].n_agg = n_i;
@@ -33,7 +32,7 @@ void run(const long k_max, const long n_i, const long a_fin, const long n_simuls
 		tf = tfins[k];
 		ti = evolve(&states[k], ti, tf, stream);	
 
-		printf("2");
+		printf("%ld, %ld, %ld \n", k, states[k].n_agg, states[k].aggregate[states[k].n_agg-1]);
 
 		for (k = 1 ; k < n_times ; ++k) {
 			states[k].n_agg = states[k-1].n_agg;
@@ -47,11 +46,8 @@ void run(const long k_max, const long n_i, const long a_fin, const long n_simuls
 			ti = evolve(&states[k], ti, tf, stream);	
 		}
 		
-		printf("3");
 
 		updateObs(states, observables, a_fin, k_max, n_times);
-
-		printf("4");
 	}
 	
 	for (int k = 0 ; k < n_times ; ++k) 
@@ -78,6 +74,8 @@ double evolve(State *state, const double tini, const double tfin, VSLStreamState
 		vdRngUniform(VSL_RNG_METHOD_UNIFORM_STD, stream, 2 * BATCH_SIZE, indices, 0.0, 1.0);
 		
 		for (int i = 0 ; i < BATCH_SIZE ; ++i) {
+			if (state->n_agg == 1) return tfin;
+
 			t += -log(times[i]) / (state->n_agg * (state->n_agg - 1));
 			if (t > tfin) return tfin;
 
@@ -114,8 +112,6 @@ void updateObs(State *states, long **observables, const long a_fin, const long k
 		if (states[n_times - 1].aggregate[i] == a_fin) naT += 1;
 	}
 
-	printf("%ld \t", naT);
-
 	long k = 0;
 	long naT2 = naT * naT;
 	long naT3 = naT2 * naT;
@@ -130,10 +126,7 @@ void updateObs(State *states, long **observables, const long a_fin, const long k
 			observables[t * N_OBS + 1][k] += naT;
 			observables[t * N_OBS + 2][k] += naT2;
 			observables[t * N_OBS + 3][k] += naT3;
-
-			printf("%ld \t", k);
 		}
-		printf("%ld \n", observables[t * N_OBS][k]);
 	}
 }
 

@@ -64,8 +64,7 @@ void export(long * observables[N_OBS], char *fname, long k_max, long n_simul_tot
     return seed;
 }*/
 
-// F*** it's hard to find reliable advice on how to seed parallel generators
-// Let's read from /dev/urandom...
+
 unsigned long seedgen2(void)  {
 	int fd = open("/dev/urandom", O_RDONLY);
     unsigned long seed;
