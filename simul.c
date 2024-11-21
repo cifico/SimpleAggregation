@@ -130,8 +130,9 @@ void updateObs(State *states, long **observables, const long a_fin, const long k
 			observables[t * N_OBS + 1][k] += naT;
 			observables[t * N_OBS + 2][k] += naT2;
 			observables[t * N_OBS + 3][k] += naT3;
-		}
 
+			printf("%ld \t", k);
+		}
 		printf("%ld \n", observables[t * N_OBS][k]);
 	}
 }
