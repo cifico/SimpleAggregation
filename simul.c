@@ -32,8 +32,6 @@ void run(const long k_max, const long n_i, const long a_fin, const long n_simuls
 		tf = tfins[k];
 		ti = evolve(&states[k], ti, tf, stream);	
 
-		printf("%ld, %ld, %ld \n", k, states[k].n_agg, states[k].aggregate[states[k].n_agg-1]);
-
 		for (k = 1 ; k < n_times ; ++k) {
 			states[k].n_agg = states[k-1].n_agg;
 
@@ -46,8 +44,7 @@ void run(const long k_max, const long n_i, const long a_fin, const long n_simuls
 			ti = evolve(&states[k], ti, tf, stream);	
 		}
 		
-
-		updateObs(states, observables, a_fin, k_max, n_times);
+		updateObs(states, observables, a_fin, k_max, n_times); 
 	}
 	
 	for (int k = 0 ; k < n_times ; ++k) 
@@ -76,7 +73,7 @@ double evolve(State *state, const double tini, const double tfin, VSLStreamState
 		for (int i = 0 ; i < BATCH_SIZE ; ++i) {
 			if (state->n_agg == 1) return tfin;
 
-			t += -log(times[i]) / (state->n_agg * (state->n_agg - 1));
+			t += -2 * log(times[i]) / (state->n_agg - 1);
 			if (t > tfin) return tfin;
 
 			agg1 = indices[2 * i] * state->n_agg;
@@ -106,7 +103,6 @@ double evolve(State *state, const double tini, const double tfin, VSLStreamState
 void updateObs(State *states, long **observables, const long a_fin, const long k_max, const long n_times) {
 	long naT = 0;
 	
-
 	for (long i = 0 ; i < states[n_times - 1].n_agg ; ++i) 
 	{
 		if (states[n_times - 1].aggregate[i] == a_fin) naT += 1;
@@ -120,8 +116,9 @@ void updateObs(State *states, long **observables, const long a_fin, const long k
 	for (long t = 0 ; t < n_times ; ++t) {
 		for (long i = 0 ; i < states[t].n_agg ; ++i) 
 		{
-			k = MIN(k_max - 1, states[t].aggregate[i]);
+			k = MIN(k_max, states[t].aggregate[i]) - 1;
 
+			//this stores the number of aggregates of size k+1 
 			observables[t * N_OBS][k] += 1;
 			observables[t * N_OBS + 1][k] += naT;
 			observables[t * N_OBS + 2][k] += naT2;
