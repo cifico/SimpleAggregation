@@ -92,7 +92,6 @@ double evolve(State *state, const long n_i, const double tini, const double tfin
 			}
 
 			state->n_agg -= 1;
-			n_events++;
 			//At this point aggregate contain all current aggregates between indices 0 and n_agg - 1 included
 		}
 	}
