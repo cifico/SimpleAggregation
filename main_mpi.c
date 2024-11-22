@@ -35,11 +35,11 @@ void export(long * observables[N_OBS], char *fname, long k_max, long n_simul_tot
 	FILE *file = NULL;
 	file = fopen(fname, "w+");
 	//assert(file);
-	fprintf(file, "%sR=%d \t", header, R);
-	fprintf(file, "# k n(k,t)");
-	fprintf(file, "n(k ,t) n(a,T) ");
-	fprintf(file, "n(k ,t) n(a,T)^2 ");
-	fprintf(file, "n(k ,t) n(a,T)^3 ");
+	fprintf(file, "%s, R=%d\n", header, R);
+	fprintf(file, "# k n(k,t) ");
+	fprintf(file, "n(k ,t)n(a,T) ");
+	fprintf(file, "n(k ,t)n(a,T)^2 ");
+	fprintf(file, "n(k ,t)n(a,T)^3 ");
 	fprintf(file, "\n");
 
 	double fac = 1.0 / n_simul_tot / R;
@@ -142,7 +142,7 @@ int main(int argc, char **argv) {
 		if (world_rank == 0) {
 			for (int k = 0 ; k < n_times ; ++k) {
 				char hd[500], ff[100];
-				sprintf(hd, "%s, t=%g\n", header, tfins[k]); // Header
+				sprintf(hd, "%s, t=%g", header, tfins[k]); // Header
 				sprintf(ff, "%s_%g.dat", fname, tfins[k]); // Filename
 				export(&obs_sum[k * N_OBS], ff, k_max, n_simuls * world_size, hd, r+1);
 			}
