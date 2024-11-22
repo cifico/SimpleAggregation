@@ -30,7 +30,7 @@ void run(const long k_max, const long n_i, const long a_fin, const long n_simuls
 		double ti = 0.0, tf = 0.0;
 
 		tf = tfins[k];
-		ti = evolve(&states[k], ti, tf, stream);	
+		ti = evolve(&states[k], n_i, ti, tf, stream);	
 
 		for (k = 1 ; k < n_times ; ++k) {
 			states[k].n_agg = states[k-1].n_agg;
@@ -41,7 +41,7 @@ void run(const long k_max, const long n_i, const long a_fin, const long n_simuls
 			}
 
 			tf = tfins[k];
-			ti = evolve(&states[k], ti, tf, stream);	
+			ti = evolve(&states[k], n_i, ti, tf, stream);	
 		}
 		
 		updateObs(states, observables, a_fin, k_max, n_times); 
@@ -56,14 +56,14 @@ void run(const long k_max, const long n_i, const long a_fin, const long n_simuls
 	vslDeleteStream(&stream);
 }
 
-double evolve(State *state, const double tini, const double tfin, VSLStreamStatePtr stream) {
+double evolve(State *state, const long n_i, const double tini, const double tfin, VSLStreamStatePtr stream) {
 	double times[BATCH_SIZE];
 	double indices[2 * BATCH_SIZE];
 
 	double t = tini;
 	long agg1 = 0;
 	long agg2 = 0;
-	long n_events = 0;
+
 	while (1) {
 
 		// Generation of the random numbers in batches
@@ -73,8 +73,8 @@ double evolve(State *state, const double tini, const double tfin, VSLStreamState
 		for (int i = 0 ; i < BATCH_SIZE ; ++i) {
 			if (state->n_agg == 1) return tfin;
 
-			t += -2 * log(times[i]) / (state->n_agg - 1);
-			if (t > tfin) {printf("ev %ld at %lf", n_events, tfin); return tfin;}
+			t += -2 * n_i * log(times[i]) / (state->n_agg * (state->n_agg - 1));
+			if (t > tfin) return tfin;
 
 			agg1 = indices[2 * i] * state->n_agg;		
 			agg2 = indices[2 * i + 1] * (state->n_agg - 1);
