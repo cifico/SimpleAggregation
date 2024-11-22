@@ -74,7 +74,7 @@ double evolve(State *state, const double tini, const double tfin, VSLStreamState
 			if (state->n_agg == 1) return tfin;
 
 			t += -2 * log(times[i]) / (state->n_agg - 1);
-			if (t > tfin) {printf("ev %ld at %lf", n_events, tfin) return tfin;}
+			if (t > tfin) {printf("ev %ld at %lf", n_events, tfin); return tfin;}
 
 			agg1 = indices[2 * i] * state->n_agg;		
 			agg2 = indices[2 * i + 1] * (state->n_agg - 1);
