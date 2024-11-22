@@ -97,7 +97,7 @@ int main(int argc, char **argv) {
 	if (world_rank == 0) {
 		sprintf(header, "# n_simuls=Rx%dx%ld, fname=%s, R=%d, k_max=%ld, n_i=%ld, a=%ld, T=%lf",
 			    world_size, n_simuls, fname, n_repet, k_max, n_i, a_fin, tfins[n_times - 1]);
-w
+
 		printf("%s\nTimes: ", header);
 		for (int k = 0 ; k < n_times ; ++k) {
 			printf("%g ", tfins[k]);
