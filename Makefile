@@ -2,9 +2,9 @@
 # Information on how to link MKL can be found on 
 # https://software.intel.com/content/www/us/en/develop/articles/intel-mkl-link-line-advisor.html
 
-MKLROOT=/opt/intel/oneapi/mkl/2024.0/
+MKLROOT=/opt/intel/oneapi/mkl/2024.0
 MKL_CFLAGS=-DMKL_ILP64 -m64 -I${MKLROOT}/include
-MKL_LDFLAGS=-Wl,--start-group ${MKLROOT}/lib/intel64/libmkl_intel_ilp64.a ${MKLROOT}/lib/intel64/libmkl_sequential.a ${MKLROOT}/lib/intel64/libmkl_core.a -Wl,--end-group -lm -ldl
+MKL_LDFLAGS=-Wl,--start-group ${MKLROOT}/lib/libmkl_intel_ilp64.a ${MKLROOT}/lib/libmkl_sequential.a ${MKLROOT}/lib/libmkl_core.a -Wl,--end-group -lm -ldl
 ### END MKL ###
 
 ### MPI ###
