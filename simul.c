@@ -63,7 +63,7 @@ double evolve(State *state, const double tini, const double tfin, VSLStreamState
 	double t = tini;
 	long agg1 = 0;
 	long agg2 = 0;
-
+	long n_events = 0;
 	while (1) {
 
 		// Generation of the random numbers in batches
@@ -74,10 +74,9 @@ double evolve(State *state, const double tini, const double tfin, VSLStreamState
 			if (state->n_agg == 1) return tfin;
 
 			t += -2 * log(times[i]) / (state->n_agg - 1);
-			if (t > tfin) return tfin;
+			if (t > tfin) {printf("ev %ld at %lf", n_events, tfin) return tfin;}
 
-			agg1 = indices[2 * i] * state->n_agg;
-			
+			agg1 = indices[2 * i] * state->n_agg;		
 			agg2 = indices[2 * i + 1] * (state->n_agg - 1);
 
 			if (agg1 == state->n_agg - 1)
@@ -93,6 +92,7 @@ double evolve(State *state, const double tini, const double tfin, VSLStreamState
 			}
 
 			state->n_agg -= 1;
+			n_events++;
 			//At this point aggregate contain all current aggregates between indices 0 and n_agg - 1 included
 		}
 	}
